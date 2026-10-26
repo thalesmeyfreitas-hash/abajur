@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle Meu Abajur — ESP32-C3 Bluetooth BLE</title>
+  <title>Meu Abajur</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -50,29 +50,39 @@
 
   <!-- Toast Notification -->
   <div id="toastBanner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden px-4 py-2.5 rounded-xl bg-slate-800/95 border border-slate-700 text-xs sm:text-sm text-slate-100 shadow-xl transition-all duration-200">
-    <span id="toastText">Pronto</span>
+    <span id="toastText">Conectado</span>
   </div>
 
-  <!-- Top Header & Bluetooth Connection Card -->
+  <!-- Top Header, Battery Indicator & Bluetooth Connection -->
   <header class="space-y-4">
     <div class="flex items-center justify-between bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-lg">
       <div class="flex items-center gap-3.5">
-        <!-- Animated Lamp Preview Orb -->
         <div id="lampOrb" class="lamp-orb w-12 h-12 rounded-2xl flex items-center justify-center bg-amber-400/20 border border-amber-400/40">
           <svg class="w-6 h-6 text-amber-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
           </svg>
         </div>
         <div>
-          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Meu Abajur ESP32-C3</h1>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">Meu Abajur</h1>
           <div class="flex items-center gap-2 mt-0.5">
-            <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block"></span>
-            <span id="statusText" class="text-xs font-medium text-slate-400">Bluetooth Desconectado</span>
+            <span id="statusDot" class="w-2 h-2 rounded-full bg-rose-500 inline-block"></span>
+            <span id="statusText" class="text-xs font-medium text-slate-400">Desconectado</span>
           </div>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2.5">
+        <!-- Battery Pill -->
+        <div id="batteryBadge" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800/90 border border-slate-700/80">
+          <svg id="batteryIcon" class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="2" y="7" width="16" height="10" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M22 11v2" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect id="batteryFillRect" x="4" y="9" width="12" height="6" rx="1" fill="currentColor" stroke="none"/>
+          </svg>
+          <span id="lblBattery" class="text-xs font-semibold text-slate-200">--%</span>
+        </div>
+
+        <!-- Connect Button -->
         <button id="btnConnect" type="button" class="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm bg-blue-600 hover:bg-blue-500 active:scale-95 text-white shadow-md shadow-blue-600/30 transition flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M7 7l10 10-5 5V2l5 5L7 17"/>
@@ -86,16 +96,15 @@
   <!-- Main Controls Section -->
   <main class="my-5 space-y-5 flex-1">
 
-    <!-- Brightness Card (Ultra-Low 13-bit Nightlight to 100%) -->
+    <!-- Brightness Card -->
     <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-semibold text-slate-200">Intensidade do Brilho</h2>
-          <p class="text-xs text-slate-400">Curva noturna de 13 bits (não desliga no mínimo)</p>
+          <h2 class="text-sm font-semibold text-slate-200">Brilho</h2>
+          <p class="text-xs text-slate-400">Intensidade da iluminação</p>
         </div>
         <div class="text-right">
-          <span id="lblPercent" class="text-lg font-bold text-amber-400">15.0%</span>
-          <span id="lblPwmRaw" class="block text-[11px] font-mono text-slate-400">PWM: 29 / 8191</span>
+          <span id="lblPercent" class="text-xl font-bold text-amber-400">15%</span>
         </div>
       </div>
 
@@ -103,118 +112,113 @@
         <input id="sliderBrilho" type="range" min="0" max="1000" value="150" class="w-full" aria-label="Controle de Brilho">
       </div>
 
-      <!-- Quick Presets for Bedtime & Reading -->
+      <!-- Quick Presets -->
       <div class="grid grid-cols-4 gap-2 pt-1">
-        <button type="button" data-preset="0" class="preset-btn py-2 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
-          🌙 Dormir<br><span class="text-[10px] text-amber-300">Mín (PWM 1)</span>
+        <button type="button" data-preset="0" class="preset-btn py-2.5 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
+          🌙 Dormir<br><span class="text-[10px] text-amber-300">1%</span>
         </button>
-        <button type="button" data-preset="180" class="preset-btn py-2 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
+        <button type="button" data-preset="180" class="preset-btn py-2.5 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
           🕯️ Penumbra<br><span class="text-[10px] text-slate-400">18%</span>
         </button>
-        <button type="button" data-preset="550" class="preset-btn py-2 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
+        <button type="button" data-preset="550" class="preset-btn py-2.5 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
           📖 Leitura<br><span class="text-[10px] text-slate-400">55%</span>
         </button>
-        <button type="button" data-preset="1000" class="preset-btn py-2 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
-          ☀️ Máximo<br><span class="text-[10px] text-amber-300">100% (4,71V)</span>
+        <button type="button" data-preset="1000" class="preset-btn py-2.5 px-2 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700/80 text-xs font-medium text-slate-200 transition active:scale-95">
+          ☀️ Máximo<br><span class="text-[10px] text-amber-300">100%</span>
         </button>
       </div>
     </section>
 
-    <!-- 6 Lighting Modes Grid (Synced with Physical Switches 1 to 6) -->
+    <!-- 6 Lighting Modes Grid -->
     <section class="space-y-2.5">
       <div class="flex items-center justify-between px-1">
-        <h2 class="text-sm font-semibold text-slate-200">Modos de Iluminação (Chaves 1 a 6)</h2>
-        <span id="lblActiveMode" class="text-xs font-medium text-amber-400">Modo 1 Ativo</span>
+        <h2 class="text-sm font-semibold text-slate-200">Cenários</h2>
+        <span id="lblActiveMode" class="text-xs font-medium text-amber-400">Branco Quente</span>
       </div>
 
       <div class="grid grid-cols-2 gap-3">
         <!-- Mode 1 -->
-        <button type="button" data-mode="1" class="mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-amber-500/15 border-amber-500/60 shadow-md">
+        <button type="button" data-mode="1" class="mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-amber-500/15 border-amber-500/60 shadow-md">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Chave 1</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-300">Luz Contínua</span>
             <span class="text-base">🟠</span>
           </div>
           <div class="font-semibold text-sm text-white">Branco Quente</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Luz âmbar aconchegante</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Ambiente aconchegante</div>
         </button>
 
         <!-- Mode 2 -->
-        <button type="button" data-mode="2" class="mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
+        <button type="button" data-mode="2" class="mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Chave 2</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Luz Contínua</span>
             <span class="text-base">🌕</span>
           </div>
           <div class="font-semibold text-sm text-white">Branco Neutro</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Quente + Frio juntos</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Equilíbrio natural</div>
         </button>
 
         <!-- Mode 3 -->
-        <button type="button" data-mode="3" class="mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
+        <button type="button" data-mode="3" class="mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Chave 3</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Luz Contínua</span>
             <span class="text-base">❄️</span>
           </div>
           <div class="font-semibold text-sm text-white">Branco Frio</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Luz clara de foco</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Foco e nitidez</div>
         </button>
 
         <!-- Mode 4 -->
-        <button type="button" data-mode="4" class="mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
+        <button type="button" data-mode="4" class="mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Chave 4</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Efeito Dinâmico</span>
             <span class="text-base">🌬️</span>
           </div>
-          <div class="font-semibold text-sm text-white">Vela com Vento</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Chama rápida instável</div>
+          <div class="font-semibold text-sm text-white">Vela ao Vento</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Chama viva oscilante</div>
         </button>
 
         <!-- Mode 5 -->
-        <button type="button" data-mode="5" class="mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
+        <button type="button" data-mode="5" class="mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Chave 5</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Efeito Dinâmico</span>
             <span class="text-base">⚡</span>
           </div>
-          <div class="font-semibold text-sm text-white">Raios e Trovões</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Quente + flashes (4 a 22s)</div>
+          <div class="font-semibold text-sm text-white">Tempestade</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Luz quente e relâmpagos</div>
         </button>
 
         <!-- Mode 6 -->
-        <button type="button" data-mode="6" class="mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
+        <button type="button" data-mode="6" class="mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700">
           <div class="flex items-center justify-between mb-1.5">
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Chave 6</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Efeito Dinâmico</span>
             <span class="text-base">🕯️</span>
           </div>
           <div class="font-semibold text-sm text-white">Vela Suave</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">Chama calma sem vento</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">Chama serena e contínua</div>
         </button>
-      </div>
-    </section>
-
-    <!-- Instructions Accordion for Android Chrome -->
-    <section class="bg-slate-900/60 border border-slate-800/80 rounded-2xl p-4">
-      <button id="btnToggleHelp" type="button" class="w-full flex items-center justify-between text-left text-xs font-semibold text-slate-300">
-        <span>📱 Como usar no Google Chrome do Android (Sem App)</span>
-        <span id="helpArrow" class="text-slate-400 transition-transform">▼</span>
-      </button>
-      <div id="helpContent" class="hidden mt-3 pt-3 border-t border-slate-800 text-xs text-slate-400 space-y-2 leading-relaxed">
-        <p>1. Ligue a chave física geral do abajur e ative o <strong>Bluetooth</strong> (e a Localização) do seu Android.</p>
-        <p>2. Toque no botão azul <strong>Conectar</strong> no topo desta página e selecione <strong>"Meu Abajur"</strong> na lista que o Chrome exibir.</p>
-        <p>3. <strong>Dica importante do Chrome:</strong> Por segurança do Android, o Web Bluetooth exige que a página seja aberta por um link <code>https://</code> (como aqui no painel ou no GitHub Pages). Se você abrir o arquivo <code>.html</code> direto da pasta <em>Downloads</em> (<code>file:///</code>), digite <code>chrome://flags/#unsafely-treat-insecure-origin-as-secure</code> no Chrome para liberar arquivos locais.</p>
       </div>
     </section>
 
   </main>
 
-  <footer class="text-center text-[11px] text-slate-500 pt-2">
-    Sincronização automática: mexer nas chaves físicas ou no potenciômetro atualiza o celular na hora.
+  <footer class="text-center text-[11px] text-slate-600 pt-2">
+    Meu Abajur
   </footer>
 
   <script>
-    // UUIDs idênticos aos configurados no código do ESP32-C3
     const SERVICE_UUID = '19b10000-e8f2-537e-4f6c-d104768a1214';
     const CHAR_CONTROLE_UUID = '19b10001-e8f2-537e-4f6c-d104768a1214';
     const PWM_MAXIMO = 8191;
     const BRILHO_MINIMO_PWM = 1;
+
+    const NOMES_MODOS = {
+      1: 'Branco Quente',
+      2: 'Branco Neutro',
+      3: 'Branco Frio',
+      4: 'Vela ao Vento',
+      5: 'Tempestade',
+      6: 'Vela Suave'
+    };
 
     let bleDevice = null;
     let bleServer = null;
@@ -225,7 +229,8 @@
     let estado = {
       modo: 1,
       permille: 150,
-      pwm: 29
+      pwm: 29,
+      bateria: null
     };
 
     const btnConnect = document.getElementById('btnConnect');
@@ -234,14 +239,13 @@
     const statusText = document.getElementById('statusText');
     const sliderBrilho = document.getElementById('sliderBrilho');
     const lblPercent = document.getElementById('lblPercent');
-    const lblPwmRaw = document.getElementById('lblPwmRaw');
     const lblActiveMode = document.getElementById('lblActiveMode');
     const lampOrb = document.getElementById('lampOrb');
     const toastBanner = document.getElementById('toastBanner');
     const toastText = document.getElementById('toastText');
-    const btnToggleHelp = document.getElementById('btnToggleHelp');
-    const helpContent = document.getElementById('helpContent');
-    const helpArrow = document.getElementById('helpArrow');
+    const lblBattery = document.getElementById('lblBattery');
+    const batteryIcon = document.getElementById('batteryIcon');
+    const batteryFillRect = document.getElementById('batteryFillRect');
 
     let toastTimeout = null;
     function mostrarToast(msg) {
@@ -250,7 +254,7 @@
       if (toastTimeout) clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
         toastBanner.classList.add('hidden');
-      }, 2800);
+      }, 2500);
     }
 
     function calcularPwm13Bits(permille) {
@@ -261,30 +265,50 @@
       return Math.max(BRILHO_MINIMO_PWM, Math.min(PWM_MAXIMO, pwm));
     }
 
-    function atualizarInterface() {
-      const pct = (estado.permille / 10).toFixed(1);
-      lblPercent.textContent = estado.permille === 0 ? 'Mín (Dormir)' : `${pct}%`;
-      lblPwmRaw.textContent = `PWM: ${estado.pwm} / 8191`;
-      lblActiveMode.textContent = `Modo ${estado.modo} Ativo`;
+    function atualizarIndicadorBateria() {
+      if (estado.bateria === null || isNaN(estado.bateria)) {
+        lblBattery.textContent = '--%';
+        batteryIcon.setAttribute('class', 'w-4 h-4 text-slate-400');
+        batteryFillRect.setAttribute('width', '0');
+        return;
+      }
+      const bat = Math.max(0, Math.min(100, estado.bateria));
+      lblBattery.textContent = `${bat}%`;
+      const fillWidth = Math.max(1, Math.round((bat / 100) * 12));
+      batteryFillRect.setAttribute('width', String(fillWidth));
 
-      // Atualiza cartões de modo
+      if (bat <= 20) {
+        batteryIcon.setAttribute('class', 'w-4 h-4 text-rose-400');
+      } else if (bat <= 45) {
+        batteryIcon.setAttribute('class', 'w-4 h-4 text-amber-400');
+      } else {
+        batteryIcon.setAttribute('class', 'w-4 h-4 text-emerald-400');
+      }
+    }
+
+    function atualizarInterface() {
+      const pct = Math.max(1, Math.round(estado.permille / 10));
+      lblPercent.textContent = `${pct}%`;
+      lblActiveMode.textContent = NOMES_MODOS[estado.modo] || 'Branco Quente';
+
       const cards = document.querySelectorAll('.mode-card');
       cards.forEach(card => {
         const m = parseInt(card.getAttribute('data-mode'), 10);
         const badge = card.querySelector('span');
         if (m === estado.modo) {
-          card.className = 'mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-amber-500/15 border-amber-500/70 shadow-md';
+          card.className = 'mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-amber-500/15 border-amber-500/70 shadow-md';
           if (badge) badge.className = 'text-xs font-bold uppercase tracking-wider text-amber-300';
         } else {
-          card.className = 'mode-card text-left p-3.5 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700';
+          card.className = 'mode-card text-left p-4 rounded-2xl border transition active:scale-95 bg-slate-900/90 border-slate-800 hover:border-slate-700';
           if (badge) badge.className = 'text-xs font-bold uppercase tracking-wider text-slate-400';
         }
       });
 
-      // Atualiza brilho visual do ícone da lâmpada no topo
       const intensidadeVisual = 0.2 + (estado.permille / 1000) * 0.8;
       const corBrilho = (estado.modo === 3) ? '56, 189, 248' : (estado.modo === 2 ? '254, 249, 195' : '251, 191, 36');
       lampOrb.style.boxShadow = `0 0 ${Math.round(8 + intensidadeVisual * 26)}px rgba(${corBrilho}, ${intensidadeVisual * 0.65})`;
+
+      atualizarIndicadorBateria();
     }
 
     async function enviarComandoBLE(texto) {
@@ -305,7 +329,7 @@
           await controleChar.writeValue(bytes);
         }
       } catch (err) {
-        console.error('Erro ao enviar BLE:', err);
+        console.error('Erro BLE:', err);
       } finally {
         escritaEmAndamento = false;
         if (comandoPendente !== null) {
@@ -317,7 +341,7 @@
     }
 
     function processarStatusRecebido(texto) {
-      // Formato enviado pelo ESP32: "M:6,P:150,W:29"
+      // Formato enviado pelo ESP32: "M:6,P:150,W:29,B:85"
       const partes = texto.split(',');
       partes.forEach(p => {
         const [chave, valStr] = p.split(':');
@@ -329,23 +353,25 @@
             sliderBrilho.value = String(estado.permille);
           }
           if (chave === 'W') estado.pwm = val;
+          if (chave === 'B') estado.bateria = Math.max(0, Math.min(100, val));
         }
       });
       atualizarInterface();
     }
 
     function aoDesconectarBLE() {
-      statusDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 inline-block';
-      statusText.textContent = 'Bluetooth Desconectado';
+      statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 inline-block';
+      statusText.textContent = 'Desconectado';
       btnConnectLabel.textContent = 'Conectar';
       controleChar = null;
-      mostrarToast('Abajur desconectado do Bluetooth');
+      estado.bateria = null;
+      atualizarInterface();
+      mostrarToast('Desconectado');
     }
 
     async function conectarBluetooth() {
       if (!navigator.bluetooth) {
-        mostrarToast('Abra esta página no Google Chrome do Android para usar o Web Bluetooth.');
-        helpContent.classList.remove('hidden');
+        mostrarToast('Bluetooth não disponível neste navegador');
         return;
       }
 
@@ -355,7 +381,7 @@
       }
 
       try {
-        statusText.textContent = 'Procurando "Meu Abajur"...';
+        statusText.textContent = 'Conectando...';
         bleDevice = await navigator.bluetooth.requestDevice({
           filters: [{ name: 'Meu Abajur' }, { services: [SERVICE_UUID] }],
           optionalServices: [SERVICE_UUID]
@@ -375,18 +401,16 @@
         const valorInicial = await controleChar.readValue();
         processarStatusRecebido(new TextDecoder().decode(valorInicial));
 
-        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block';
-        statusText.textContent = 'Conectado ao Meu Abajur';
-        btnConnectLabel.textContent = 'Desconectar';
-        mostrarToast('Conectado ao Meu Abajur via Bluetooth!');
+        statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 inline-block';
+        statusText.textContent = 'Conectado';
+        btnConnectLabel.textContent = 'Sair';
+        mostrarToast('Conectado');
       } catch (err) {
-        statusDot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 inline-block';
-        statusText.textContent = 'Bluetooth Desconectado';
-        mostrarToast('Conexão cancelada ou abajur fora de alcance.');
+        statusDot.className = 'w-2 h-2 rounded-full bg-rose-500 inline-block';
+        statusText.textContent = 'Desconectado';
       }
     }
 
-    // Eventos de Interface
     btnConnect.addEventListener('click', conectarBluetooth);
 
     sliderBrilho.addEventListener('input', () => {
@@ -415,17 +439,6 @@
         atualizarInterface();
         enviarComandoBLE(`M:${m}`);
       });
-    });
-
-    btnToggleHelp.addEventListener('click', () => {
-      const isHidden = helpContent.classList.contains('hidden');
-      if (isHidden) {
-        helpContent.classList.remove('hidden');
-        helpArrow.style.transform = 'rotate(180deg)';
-      } else {
-        helpContent.classList.add('hidden');
-        helpArrow.style.transform = 'rotate(0deg)';
-      }
     });
 
     atualizarInterface();
